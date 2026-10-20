@@ -1,0 +1,459 @@
+import asyncio
+import os
+from aiohttp import web
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+
+BOT_TOKEN = "8538776972:AAG-X__6ZZaf6iN7WihUB9blBRae37so0nE"
+WEBAPP_URL = "https://easygifts-bot.onrender.com"
+
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
+
+HTML_CONTENT = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>EasyGifts</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #090614;
+      --card-bg: linear-gradient(145deg, #18102d, #100a20);
+      --accent: #8b5cf6;
+      --gold: #f59e0b;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-active: rgba(139, 92, 246, 0.4);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif;
+    }
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(139, 92, 246, 0.18) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(245, 158, 11, 0.12) 0px, transparent 50%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 16px;
+      padding-bottom: 90px;
+      overflow-x: hidden;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 16px;
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+    .balance-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      color: #f59e0b;
+      backdrop-filter: blur(12px);
+    }
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(16, 10, 32, 0.8));
+      border: 1px solid var(--border-active);
+      border-radius: 20px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner h2 {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .hero-banner p {
+      font-size: 13px;
+      color: #a1a1aa;
+      line-height: 1.4;
+    }
+    .section-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #a1a1aa;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card:active {
+      transform: scale(0.96);
+      border-color: var(--accent);
+    }
+    .card-art {
+      width: 90px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      margin-bottom: 12px;
+      position: relative;
+      filter: drop-shadow(0 8px 18px rgba(139, 92, 246, 0.35));
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+    .btn-buy {
+      width: 100%;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border: none;
+      border-radius: 12px;
+      color: #000;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(14px);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-box {
+      width: 100%;
+      max-width: 360px;
+      background: #140d28;
+      border: 1px solid var(--border-active);
+      border-radius: 24px;
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    .tape-wrapper {
+      width: 100%;
+      height: 120px;
+      position: relative;
+      overflow: hidden;
+      margin: 20px 0;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+    .tape-line {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #f59e0b;
+      transform: translateX(-50%);
+      z-index: 10;
+      box-shadow: 0 0 12px #f59e0b;
+    }
+    .tape-track {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      will-change: transform;
+    }
+    .tape-item {
+      width: 90px;
+      height: 90px;
+      flex-shrink: 0;
+      margin: 0 5px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-sizing: border-box;
+    }
+    .tape-item.rare {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.1);
+    }
+    .tape-item.epic {
+      border-color: #8b5cf6;
+      background: rgba(139, 92, 246, 0.1);
+    }
+    .tape-item.legendary {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.15);
+    }
+    .tape-item-name {
+      font-size: 9px;
+      font-weight: 700;
+      margin-top: 4px;
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .action-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      padding: 14px 0;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+      transition: 0.15s;
+    }
+    .action-btn:active {
+      transform: scale(0.97);
+    }
+    .btn-secondary {
+      background: transparent;
+      box-shadow: none;
+      color: #71717a;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <div class="logo-badge">EG</div>
+      <div class="brand-title">EasyGifts</div>
+    </div>
+    <div class="balance-container">
+      <span>150</span>
+      <span>⭐️</span>
+    </div>
+  </div>
+
+  <div class="hero-banner">
+    <h2>Telegram Collectibles</h2>
+    <p>Выбивай эксклюзивные NFT-подарки и забирай в профиль Telegram</p>
+  </div>
+
+  <div class="section-title">Доступные кейсы</div>
+  
+  <div class="grid">
+    <div class="card" onclick="openRoulette('Кейс Стартовый', 25)">
+      <div class="card-art">🎁</div>
+      <div class="card-title">Стартовый</div>
+      <button class="btn-buy">25 ⭐️</button>
+    </div>
+    <div class="card" onclick="openRoulette('Telegram Rare', 75)">
+      <div class="card-art">💎</div>
+      <div class="card-title">Telegram Rare</div>
+      <button class="btn-buy">75 ⭐️</button>
+    </div>
+    <div class="card" onclick="openRoulette('Royal Gold', 250)">
+      <div class="card-art">👑</div>
+      <div class="card-title">Royal Gold</div>
+      <button class="btn-buy">250 ⭐️</button>
+    </div>
+    <div class="card" onclick="openRoulette('Pepe Jackpot', 500)">
+      <div class="card-art">🐸</div>
+      <div class="card-title">Pepe Jackpot</div>
+      <button class="btn-buy">500 ⭐️</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <h3 id="modal-title" style="font-size: 18px; font-weight: 800;">Кейс</h3>
+      <div class="tape-wrapper">
+        <div class="tape-line"></div>
+        <div class="tape-track" id="tape-track"></div>
+      </div>
+      <div id="drop-result" style="min-height: 24px; font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #a1a1aa;">
+        Испытай удачу
+      </div>
+      <button class="action-btn" id="roll-btn" onclick="spinTape()">Открыть кейс</button>
+      <button class="action-btn btn-secondary" onclick="closeModal()">Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.ready();
+    }
+
+    const items = [
+      { name: "Teddy Bear", icon: "🧸", type: "common" },
+      { name: "Heart Box", icon: "💖", type: "common" },
+      { name: "Gem Ring", icon: "💍", type: "rare" },
+      { name: "Golden Cup", icon: "🏆", type: "rare" },
+      { name: "Star NFT", icon: "⭐", type: "epic" },
+      { name: "Diamond TON", icon: "💎", type: "epic" },
+      { name: "Pepe Gold", icon: "🐸", type: "legendary" }
+    ];
+
+    const track = document.getElementById('tape-track');
+    const itemWidth = 100;
+    let isSpinning = false;
+    let winnerIndex = 0;
+
+    function openRoulette(name, price) {
+      document.getElementById('modal-title').innerText = `${name} (${price} ⭐️)`;
+      document.getElementById('drop-result').innerText = "Нажми кнопку для запуска";
+      document.getElementById('roll-btn').style.display = "block";
+      document.getElementById('modal').style.display = "flex";
+      buildTape();
+    }
+
+    function closeModal() {
+      if (isSpinning) return;
+      document.getElementById('modal').style.display = "none";
+    }
+
+    function buildTape() {
+      track.innerHTML = "";
+      track.style.transition = "none";
+      track.style.transform = "translateX(0px)";
+
+      for (let i = 0; i < 50; i++) {
+        const rand = items[Math.floor(Math.random() * items.length)];
+        const div = document.createElement('div');
+        div.className = `tape-item ${rand.type}`;
+        div.innerHTML = `<span>${rand.icon}</span><span class="tape-item-name">${rand.name}</span>`;
+        track.appendChild(div);
+      }
+    }
+
+    function spinTape() {
+      if (isSpinning) return;
+      isSpinning = true;
+      document.getElementById('roll-btn').style.display = "none";
+      document.getElementById('drop-result').innerText = "Кейс открывается...";
+
+      winnerIndex = 38;
+      const winner = items[Math.floor(Math.random() * items.length)];
+      
+      const winningNode = track.children[winnerIndex];
+      winningNode.className = `tape-item ${winner.type}`;
+      winningNode.innerHTML = `<span>${winner.icon}</span><span class="tape-item-name">${winner.name}</span>`;
+
+      const wrapperWidth = document.querySelector('.tape-wrapper').offsetWidth;
+      const targetOffset = (winnerIndex * itemWidth) + (itemWidth / 2) - (wrapperWidth / 2);
+
+      track.style.transition = "transform 4.5s cubic-bezier(0.12, 0.8, 0.32, 1)";
+      track.style.transform = `translateX(-${targetOffset}px)`;
+
+      setTimeout(() => {
+        isSpinning = false;
+        document.getElementById('drop-result').innerHTML = `<span style="color: #f59e0b;">Выпало: ${winner.name}!</span>`;
+        if (tg && tg.HapticFeedback) {
+          tg.HapticFeedback.notificationOccurred('success');
+        }
+      }, 4600);
+    }
+  </script>
+</body>
+</html>"""
+
+@dp.message(Command("start"))
+async def start_cmd(message: types.Message):
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="🎮 Открыть EasyGifts App", 
+            web_app=WebAppInfo(url=WEBAPP_URL)
+        )]
+    ])
+    await message.answer(
+        f"👋 Привет, {message.from_user.first_name}!\n\n"
+        "Добро пожаловать в **EasyGifts** — сервис открытия кейсов с Telegram Gifts и TON.\n\n"
+        "Жми кнопку ниже, чтобы начать игру 👇",
+        reply_markup=kb,
+        parse_mode="Markdown"
+    )
+
+async def handle_webapp(request):
+    return web.Response(text=HTML_CONTENT, content_type="text/html")
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", handle_webapp)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 8080))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+
+async def main():
+    await start_web_server()
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
