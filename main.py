@@ -14,31 +14,33 @@ dp = Dispatcher()
 
 USER_BALANCES = {}
 USER_INVENTORIES = {}
+WITHDRAW_REQUESTS = []
 
+# Каталог реальных Telegram Gifts & NFT
 PRIZES_POOL = {
     "starter": [
-        {"name": "Teddy Bear", "icon": "🧸", "rarity": "common", "val": 15, "weight": 60},
-        {"name": "Heart Box", "icon": "💖", "rarity": "common", "val": 35, "weight": 25},
-        {"name": "Gem Ring", "icon": "💍", "rarity": "rare", "val": 80, "weight": 12},
-        {"name": "Golden Cup", "icon": "🏆", "rarity": "epic", "val": 200, "weight": 3},
+        {"id": "bear", "name": "Plush Teddy", "img": "https://img.icons8.com/isometric/512/teddy-bear.png", "type": "common", "val": 15, "weight": 60},
+        {"id": "heart", "name": "Heart Box", "img": "https://img.icons8.com/isometric/512/like.png", "type": "common", "val": 35, "weight": 25},
+        {"id": "ring", "name": "Diamond Ring", "img": "https://img.icons8.com/isometric/512/wedding-rings.png", "type": "rare", "val": 80, "weight": 12},
+        {"id": "cup", "name": "Telegram Cup", "img": "https://img.icons8.com/isometric/512/trophy.png", "type": "rare", "val": 180, "weight": 3},
     ],
     "rare": [
-        {"name": "Heart Box", "icon": "💖", "rarity": "common", "val": 35, "weight": 50},
-        {"name": "Gem Ring", "icon": "💍", "rarity": "rare", "val": 80, "weight": 30},
-        {"name": "Golden Cup", "icon": "🏆", "rarity": "epic", "val": 200, "weight": 15},
-        {"name": "Star NFT", "icon": "⭐", "rarity": "epic", "val": 450, "weight": 5},
+        {"id": "heart", "name": "Heart Box", "img": "https://img.icons8.com/isometric/512/like.png", "type": "common", "val": 35, "weight": 45},
+        {"id": "ring", "name": "Diamond Ring", "img": "https://img.icons8.com/isometric/512/wedding-rings.png", "type": "rare", "val": 80, "weight": 35},
+        {"id": "star_nft", "name": "Star NFT #402", "img": "https://img.icons8.com/isometric/512/star.png", "type": "epic", "val": 400, "weight": 15},
+        {"id": "dog", "name": "Spike The Dog NFT", "img": "https://img.icons8.com/isometric/512/corgi.png", "type": "legendary", "val": 1500, "weight": 5},
     ],
     "royal": [
-        {"name": "Gem Ring", "icon": "💍", "rarity": "rare", "val": 80, "weight": 45},
-        {"name": "Golden Cup", "icon": "🏆", "rarity": "epic", "val": 200, "weight": 35},
-        {"name": "Star NFT", "icon": "⭐", "rarity": "epic", "val": 450, "weight": 15},
-        {"name": "TON Diamond", "icon": "💎", "rarity": "legendary", "val": 1200, "weight": 5},
+        {"id": "ring", "name": "Diamond Ring", "img": "https://img.icons8.com/isometric/512/wedding-rings.png", "type": "rare", "val": 80, "weight": 40},
+        {"id": "star_nft", "name": "Star NFT #402", "img": "https://img.icons8.com/isometric/512/star.png", "type": "epic", "val": 400, "weight": 35},
+        {"id": "ton_gem", "name": "TON Crystal NFT", "img": "https://img.icons8.com/isometric/512/diamond.png", "type": "legendary", "val": 2200, "weight": 20},
+        {"id": "pepe", "name": "Golden Pepe NFT", "img": "https://img.icons8.com/isometric/512/frog.png", "type": "mythic", "val": 5000, "weight": 5},
     ],
     "jackpot": [
-        {"name": "Golden Cup", "icon": "🏆", "rarity": "epic", "val": 200, "weight": 40},
-        {"name": "Star NFT", "icon": "⭐", "rarity": "epic", "val": 450, "weight": 35},
-        {"name": "TON Diamond", "icon": "💎", "rarity": "legendary", "val": 1200, "weight": 20},
-        {"name": "Pepe Gold", "icon": "🐸", "rarity": "legendary", "val": 3000, "weight": 5},
+        {"id": "star_nft", "name": "Star NFT #402", "img": "https://img.icons8.com/isometric/512/star.png", "type": "epic", "val": 400, "weight": 35},
+        {"id": "dog", "name": "Spike The Dog NFT", "img": "https://img.icons8.com/isometric/512/corgi.png", "type": "legendary", "val": 1500, "weight": 35},
+        {"id": "ton_gem", "name": "TON Crystal NFT", "img": "https://img.icons8.com/isometric/512/diamond.png", "type": "legendary", "val": 2200, "weight": 20},
+        {"id": "pepe", "name": "Golden Pepe NFT", "img": "https://img.icons8.com/isometric/512/frog.png", "type": "mythic", "val": 5000, "weight": 10},
     ]
 }
 
@@ -53,100 +55,123 @@ HTML_PAGE = """<!DOCTYPE html>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #090514;
-      --card: #150f26;
-      --border: rgba(168, 85, 247, 0.25);
+      --bg: #0b0718;
+      --card: #150f28;
+      --border: rgba(147, 51, 234, 0.25);
       --accent: #a855f7;
       --gold: #f59e0b;
+      --cyan: #06b6d4;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, sans-serif; }
     body {
       background: var(--bg);
       background-image: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.22) 0%, transparent 60%);
-      color: #fff; min-height: 100vh; padding: 16px 16px 85px 16px;
+      color: #fff; min-height: 100vh; padding: 16px 16px 90px 16px;
     }
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .brand { font-size: 18px; font-weight: 900; background: linear-gradient(90deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .stars-badge { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--gold); border-radius: 20px; padding: 6px 14px; font-weight: 800; color: var(--gold); font-size: 14px; }
+    .brand { font-size: 19px; font-weight: 900; background: linear-gradient(90deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stars-badge { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--gold); border-radius: 20px; padding: 7px 16px; font-weight: 800; color: var(--gold); font-size: 14px; cursor: pointer; }
+    
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+    
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .case-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
+      background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 16px 12px;
+      display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer;
     }
-    .case-icon { font-size: 46px; margin-bottom: 8px; }
-    .case-name { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+    .case-art { width: 84px; height: 84px; object-fit: contain; margin-bottom: 8px; filter: drop-shadow(0 6px 14px rgba(168, 85, 247, 0.45)); }
+    .case-name { font-size: 14px; font-weight: 800; margin-bottom: 10px; }
     .open-btn {
       width: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 12px;
-      padding: 10px 0; font-weight: 900; color: #000; font-size: 14px; cursor: pointer;
+      padding: 10px 0; font-weight: 900; color: #0b0718; font-size: 14px; cursor: pointer;
     }
+
+    /* Модалка рулетки */
     .modal {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100;
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100;
       flex-direction: column; align-items: center; justify-content: center; padding: 16px;
     }
     .modal-box { width: 100%; max-width: 340px; background: #130a24; border: 1px solid var(--border); border-radius: 24px; padding: 20px 16px; text-align: center; }
-    .tape-box { width: 100%; height: 110px; position: relative; overflow: hidden; margin: 16px 0; background: rgba(0,0,0,0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); }
+    .tape-box { width: 100%; height: 110px; position: relative; overflow: hidden; margin: 16px 0; background: rgba(0,0,0,0.6); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); }
     .tape-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: var(--gold); transform: translateX(-50%); z-index: 10; box-shadow: 0 0 10px var(--gold); }
     .tape-track { display: flex; align-items: center; height: 100%; position: absolute; left: 0; top: 0; }
-    .tape-item { width: 80px; height: 80px; margin: 0 5px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 30px; flex-shrink: 0; }
+    .tape-item { width: 80px; height: 80px; margin: 0 5px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tape-item img { width: 55px; height: 55px; object-fit: contain; }
     .spin-btn { width: 100%; background: var(--accent); border: none; border-radius: 12px; padding: 12px 0; color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; }
     .close-btn { background: transparent; border: none; color: #64748b; font-size: 13px; margin-top: 10px; cursor: pointer; }
-    .inv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
-    .inv-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 10px 4px; text-align: center; }
-    .inv-card span { font-size: 26px; display: block; margin-bottom: 4px; }
-    .inv-card p { font-size: 10px; color: #cbd5e1; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .inv-card b { font-size: 11px; color: var(--gold); }
-    .sell-btn { width: 100%; background: #10b981; border: none; border-radius: 14px; padding: 12px 0; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; }
-    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 68px; background: #0e071e; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-around; align-items: center; }
+
+    /* Инвентарь */
+    .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .inv-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 10px; text-align: center; }
+    .inv-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 6px; }
+    .inv-card h4 { font-size: 12px; font-weight: 800; margin-bottom: 4px; }
+    .inv-card p { font-size: 12px; color: var(--gold); font-weight: 800; margin-bottom: 10px; }
+    .inv-actions { display: flex; gap: 6px; }
+    .inv-btn-sell { flex: 1; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-size: 10px; font-weight: 800; padding: 6px 0; cursor: pointer; }
+    .inv-btn-withdraw { flex: 1; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6; border-radius: 8px; font-size: 10px; font-weight: 800; padding: 6px 0; cursor: pointer; }
+
+    /* Модалка пополнения Stars */
+    .deposit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+    .deposit-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center; cursor: pointer; }
+    .deposit-card b { display: block; font-size: 16px; color: var(--gold); }
+    .deposit-card span { font-size: 11px; color: #94a3b8; }
+
+    /* Навбар */
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 68px; background: #0e071e; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-around; align-items: center; z-index: 50; }
     .nav-item { font-size: 11px; font-weight: 700; color: #64748b; text-align: center; cursor: pointer; }
     .nav-item span { font-size: 20px; display: block; margin-bottom: 2px; }
     .nav-item.active { color: var(--accent); }
   </style>
 </head>
 <body>
+
   <div class="top-bar">
     <div class="brand">EASYGIFTS</div>
-    <div class="stars-badge"><span id="stars-val">...</span> ⭐️</div>
+    <div class="stars-badge" onclick="openDepositModal()"><span id="stars-val">...</span> ⭐️ ＋</div>
   </div>
 
+  <!-- Вкладка КЕЙСЫ -->
   <div id="tab-cases" class="tab-content active">
     <div class="grid">
       <div class="case-card" onclick="openModal('starter', 'Стартовый', 25)">
-        <div class="case-icon">📦</div>
+        <img class="case-art" src="https://img.icons8.com/isometric/512/teddy-bear.png">
         <div class="case-name">Стартовый</div>
         <button class="open-btn">25 ⭐️</button>
       </div>
       <div class="case-card" onclick="openModal('rare', 'Telegram Rare', 75)">
-        <div class="case-icon">💎</div>
-        <div class="case-name">Rare Drop</div>
+        <img class="case-art" src="https://img.icons8.com/isometric/512/star.png">
+        <div class="case-name">Rare NFT Drop</div>
         <button class="open-btn">75 ⭐️</button>
       </div>
       <div class="case-card" onclick="openModal('royal', 'Royal Gold', 250)">
-        <div class="case-icon">👑</div>
-        <div class="case-name">Royal Gold</div>
+        <img class="case-art" src="https://img.icons8.com/isometric/512/diamond.png">
+        <div class="case-name">TON Crystal</div>
         <button class="open-btn">250 ⭐️</button>
       </div>
       <div class="case-card" onclick="openModal('jackpot', 'Pepe Jackpot', 500)">
-        <div class="case-icon">🐸</div>
+        <img class="case-art" src="https://img.icons8.com/isometric/512/frog.png">
         <div class="case-name">Pepe Jackpot</div>
         <button class="open-btn">500 ⭐️</button>
       </div>
     </div>
   </div>
 
+  <!-- Вкладка ИНВЕНТАРЬ -->
   <div id="tab-inv" class="tab-content">
     <div class="inv-grid" id="inv-list"></div>
-    <button class="sell-btn" onclick="sellAll()">💰 Продать всё за Stars</button>
   </div>
 
+  <!-- Вкладка ПРОФИЛЬ -->
   <div id="tab-prof" class="tab-content">
     <div class="case-card" style="text-align: left; padding: 20px;">
       <h3 id="prof-title" style="margin-bottom: 6px;">Игрок</h3>
-      <p id="prof-id" style="color: #64748b; font-size: 13px;">ID: ...</p>
+      <p id="prof-id" style="color: #64748b; font-size: 13px; margin-bottom: 14px;">ID: ...</p>
+      <button class="open-btn" onclick="openDepositModal()">⭐️ Пополнить счёт Stars</button>
     </div>
   </div>
 
+  <!-- Модалка рулетки -->
   <div class="modal" id="modal">
     <div class="modal-box">
       <h3 id="modal-title" style="margin-bottom: 4px;">Кейс</h3>
@@ -162,6 +187,34 @@ HTML_PAGE = """<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- Модалка пополнения -->
+  <div class="modal" id="deposit-modal">
+    <div class="modal-box">
+      <h3>Пополнить Stars ⭐️</h3>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Выберите сумму для пополнения</p>
+      <div class="deposit-grid">
+        <div class="deposit-card" onclick="buyStars(50)">
+          <b>50 ⭐️</b>
+          <span>Тестовый</span>
+        </div>
+        <div class="deposit-card" onclick="buyStars(100)">
+          <b>100 ⭐️</b>
+          <span>Популярный</span>
+        </div>
+        <div class="deposit-card" onclick="buyStars(250)">
+          <b>250 ⭐️</b>
+          <span>Выгодный</span>
+        </div>
+        <div class="deposit-card" onclick="buyStars(500)">
+          <b>500 ⭐️</b>
+          <span>VIP Пакет</span>
+        </div>
+      </div>
+      <button class="close-btn" onclick="closeDepositModal()">Отмена</button>
+    </div>
+  </div>
+
+  <!-- Навбар -->
   <div class="nav-bar">
     <div class="nav-item active" onclick="switchNav('cases', this)"><span>🎰</span>Кейсы</div>
     <div class="nav-item" onclick="switchNav('inv', this)"><span>🎒</span>Инвентарь</div>
@@ -201,27 +254,68 @@ HTML_PAGE = """<!DOCTYPE html>
       const box = document.getElementById('inv-list');
       box.innerHTML = '';
       if (!items || items.length === 0) {
-        box.innerHTML = '<div style="grid-column: 1/-1; color: #64748b; padding: 30px 0; text-align: center;">Инвентарь пуст</div>';
+        box.innerHTML = '<div style="grid-column: 1/-1; color: #64748b; padding: 40px 0; text-align: center;">Инвентарь пуст.<br>Открывай кейсы!</div>';
         return;
       }
-      items.forEach(i => {
+      items.forEach((item, index) => {
         const d = document.createElement('div');
         d.className = 'inv-card';
-        d.innerHTML = `<span>${i.icon}</span><p>${i.name}</p><b>${i.val} ⭐️</b>`;
+        d.innerHTML = `
+          <img src="${item.img}">
+          <h4>${item.name}</h4>
+          <p>${item.val} ⭐️</p>
+          <div class="inv-actions">
+            <button class="inv-btn-sell" onclick="sellItem(${index})">Продать</button>
+            <button class="inv-btn-withdraw" onclick="withdrawItem(${index}, '${item.name}')">Вывести</button>
+          </div>
+        `;
         box.appendChild(d);
       });
     }
 
-    async function sellAll() {
-      const res = await fetch('/api/sell_all', {
+    async function sellItem(idx) {
+      const res = await fetch('/api/sell_item', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ user_id: userId })
+        body: JSON.stringify({ user_id: userId, index: idx })
       });
       const data = await res.json();
       if (data.ok) {
         document.getElementById('stars-val').innerText = data.new_balance;
-        renderInventory([]);
+        renderInventory(data.inventory);
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      }
+    }
+
+    async function withdrawItem(idx, name) {
+      const address = prompt(`Куда вывести ${name}? Укажите @username или TON-кошелек:`);
+      if (!address) return;
+
+      const res = await fetch('/api/withdraw_item', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId, index: idx, target: address })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert("Заявка на вывод создана! Подарок поступит в профиль.");
+        renderInventory(data.inventory);
+      }
+    }
+
+    function openDepositModal() { document.getElementById('deposit-modal').style.display = 'flex'; }
+    function closeDepositModal() { document.getElementById('deposit-modal').style.display = 'none'; }
+
+    async function buyStars(amount) {
+      const res = await fetch('/api/add_balance', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId, amount: amount })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('stars-val').innerText = data.new_balance;
+        closeDepositModal();
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
       }
     }
@@ -240,16 +334,25 @@ HTML_PAGE = """<!DOCTYPE html>
       document.getElementById('modal').style.display = "none";
     }
 
+    const defaultPool = [
+      "https://img.icons8.com/isometric/512/teddy-bear.png",
+      "https://img.icons8.com/isometric/512/like.png",
+      "https://img.icons8.com/isometric/512/wedding-rings.png",
+      "https://img.icons8.com/isometric/512/trophy.png",
+      "https://img.icons8.com/isometric/512/star.png",
+      "https://img.icons8.com/isometric/512/diamond.png",
+      "https://img.icons8.com/isometric/512/frog.png"
+    ];
+
     function buildTrack() {
       const track = document.getElementById('tape-track');
       track.style.transition = "none";
       track.style.transform = "translateX(0px)";
       track.innerHTML = "";
-      const icons = ["🧸", "💖", "💍", "🏆", "⭐", "💎", "🐸"];
       for (let i = 0; i < 45; i++) {
         const item = document.createElement('div');
         item.className = "tape-item";
-        item.innerText = icons[Math.floor(Math.random() * icons.length)];
+        item.innerHTML = `<img src="${defaultPool[Math.floor(Math.random() * defaultPool.length)]}">`;
         track.appendChild(item);
       }
     }
@@ -280,7 +383,7 @@ HTML_PAGE = """<!DOCTYPE html>
         status.innerText = "Крутим ленту...";
 
         const track = document.getElementById('tape-track');
-        track.children[35].innerText = data.drop.icon;
+        track.children[35].innerHTML = `<img src="${data.drop.img}">`;
 
         const targetOffset = (35 * 90) + 45 - (document.querySelector('.tape-box').offsetWidth / 2);
         track.style.transition = "transform 4.5s cubic-bezier(0.12, 0.8, 0.32, 1)";
@@ -317,7 +420,7 @@ async def start_cmd(message: types.Message):
         f"👋 Привет, {message.from_user.first_name}!\n\n"
         f"Добро пожаловать в **EasyGifts**.\n"
         f"Твой баланс: **{USER_BALANCES[uid]} ⭐️**\n\n"
-        "Нажимай кнопку ниже, чтобы запустить игру 👇",
+        "Жми кнопку ниже, чтобы начать игру 👇",
         reply_markup=kb,
         parse_mode="Markdown"
     )
@@ -335,6 +438,13 @@ async def api_user_data(request):
         "inventory": USER_INVENTORIES[uid]
     })
 
+async def api_add_balance(request):
+    data = await request.json()
+    uid = str(data.get("user_id", "demo"))
+    amt = int(data.get("amount", 100))
+    USER_BALANCES[uid] = USER_BALANCES.get(uid, 0) + amt
+    return web.json_response({"ok": True, "new_balance": USER_BALANCES[uid]})
+
 async def api_open_case(request):
     data = await request.json()
     uid = str(data.get("user_id", "demo"))
@@ -351,9 +461,10 @@ async def api_open_case(request):
     drop = random.choices(pool, weights=weights, k=1)[0]
 
     item_record = {
+        "id": drop["id"],
         "name": drop["name"],
-        "icon": drop["icon"],
-        "rarity": drop["rarity"],
+        "img": drop["img"],
+        "type": drop["type"],
         "val": drop["val"]
     }
     USER_INVENTORIES.setdefault(uid, []).append(item_record)
@@ -364,36 +475,49 @@ async def api_open_case(request):
         "drop": item_record
     })
 
-async def api_sell_all(request):
+async def api_sell_item(request):
     data = await request.json()
     uid = str(data.get("user_id", "demo"))
+    idx = int(data.get("index", 0))
     items = USER_INVENTORIES.get(uid, [])
-    if not items:
-        return web.json_response({"ok": False, "error": "Инвентарь пуст"})
 
-    total = sum(i["val"] for i in items)
-    USER_BALANCES[uid] = USER_BALANCES.get(uid, 0) + total
-    USER_INVENTORIES[uid] = []
+    if 0 <= idx < len(items):
+        sold = items.pop(idx)
+        USER_BALANCES[uid] = USER_BALANCES.get(uid, 0) + sold["val"]
+        return web.json_response({"ok": True, "new_balance": USER_BALANCES[uid], "inventory": items})
 
-    return web.json_response({
-        "ok": True,
-        "new_balance": USER_BALANCES[uid],
-        "gained": total
-    })
+    return web.json_response({"ok": False, "error": "Предмет не найден"})
+
+async def api_withdraw_item(request):
+    data = await request.json()
+    uid = str(data.get("user_id", "demo"))
+    idx = int(data.get("index", 0))
+    target = data.get("target", "")
+    items = USER_INVENTORIES.get(uid, [])
+
+    if 0 <= idx < len(items):
+        item = items.pop(idx)
+        WITHDRAW_REQUESTS.append({"user_id": uid, "item": item, "target": target})
+        print(f"WITHDRAW REQUEST: User {uid} -> {item['name']} to {target}")
+        return web.json_response({"ok": True, "inventory": items})
+
+    return web.json_response({"ok": False, "error": "Ошибка вывода"})
 
 async def main():
     app = web.Application()
     app.router.add_get("/", handle_index)
     app.router.add_get("/api/user_data", api_user_data)
+    app.router.add_post("/api/add_balance", api_add_balance)
     app.router.add_post("/api/open_case", api_open_case)
-    app.router.add_post("/api/sell_all", api_sell_all)
+    app.router.add_post("/api/sell_item", api_sell_item)
+    app.router.add_post("/api/withdraw_item", api_withdraw_item)
 
     port = int(os.environ.get("PORT", 8080))
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"Server started on port {port}")
+    print(f"EasyGifts server running on port {port}")
 
     await dp.start_polling(bot)
 
