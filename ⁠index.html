@@ -7,402 +7,210 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #090614;
-      --card-bg: linear-gradient(145deg, #18102d, #100a20);
-      --accent: #8b5cf6;
+      --bg: #090514;
+      --card: #150f26;
+      --border: rgba(168, 85, 247, 0.25);
+      --accent: #a855f7;
       --gold: #f59e0b;
-      --border: rgba(255, 255, 255, 0.08);
-      --border-active: rgba(139, 92, 246, 0.4);
+      --cyan: #06b6d4;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, sans-serif; }
     body {
-      background-color: var(--bg);
-      background-image: 
-        radial-gradient(at 10% 10%, rgba(139, 92, 246, 0.18) 0px, transparent 50%),
-        radial-gradient(at 90% 90%, rgba(245, 158, 11, 0.12) 0px, transparent 50%);
-      color: #fff;
-      min-height: 100vh;
-      padding: 16px;
-      padding-bottom: 90px;
-      overflow-x: hidden;
+      background: var(--bg);
+      background-image: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.2) 0%, transparent 60%);
+      color: #fff; min-height: 100vh; padding: 16px 16px 85px 16px;
+    }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .brand { font-size: 18px; font-weight: 900; background: linear-gradient(90deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stars-badge { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--gold); border-radius: 20px; padding: 6px 14px; font-weight: 800; color: var(--gold); font-size: 14px; }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .case-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+    .case-icon { font-size: 46px; margin-bottom: 8px; filter: drop-shadow(0 6px 12px rgba(168, 85, 247, 0.35)); }
+    .case-name { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+    .open-btn {
+      width: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 12px;
+      padding: 10px 0; font-weight: 900; color: #000; font-size: 14px; cursor: pointer;
     }
 
-    /* Верхняя панель */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .logo-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      font-size: 16px;
-      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
-    }
-
-    .brand-title {
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-    }
-
-    .balance-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: 14px;
-      color: #f59e0b;
-      backdrop-filter: blur(12px);
-    }
-
-    /* Баннер */
-    .hero-banner {
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(16, 10, 32, 0.8));
-      border: 1px solid var(--border-active);
-      border-radius: 20px;
-      padding: 18px 20px;
-      margin-bottom: 24px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-banner h2 {
-      font-size: 20px;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .hero-banner p {
-      font-size: 13px;
-      color: #a1a1aa;
-      line-height: 1.4;
-    }
-
-    /* Сетка кейсов */
-    .section-title {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: #a1a1aa;
-      font-weight: 700;
-      margin-bottom: 14px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 16px 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      position: relative;
-      cursor: pointer;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.4);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .card:active {
-      transform: scale(0.96);
-      border-color: var(--accent);
-    }
-
-    .card-art {
-      width: 90px;
-      height: 90px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 50px;
-      margin-bottom: 12px;
-      position: relative;
-      filter: drop-shadow(0 8px 18px rgba(139, 92, 246, 0.35));
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
-    }
-
-    .btn-buy {
-      width: 100%;
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      border: none;
-      border-radius: 12px;
-      color: #000;
-      font-weight: 800;
-      font-size: 13px;
-      padding: 10px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
-    }
-
-    /* Модальное окно открытия с рулеткой */
+    /* Модалка рулетки */
     .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.88);
-      backdrop-filter: blur(14px);
-      z-index: 100;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100;
+      flex-direction: column; align-items: center; justify-content: center; padding: 16px;
     }
+    .modal-box { width: 100%; max-width: 340px; background: #130a24; border: 1px solid var(--border); border-radius: 24px; padding: 20px 16px; text-align: center; }
+    .tape-box { width: 100%; height: 110px; position: relative; overflow: hidden; margin: 16px 0; background: rgba(0,0,0,0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); }
+    .tape-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: var(--gold); transform: translateX(-50%); z-index: 10; box-shadow: 0 0 10px var(--gold); }
+    .tape-track { display: flex; align-items: center; height: 100%; position: absolute; left: 0; top: 0; }
+    .tape-item { width: 80px; height: 80px; margin: 0 5px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 30px; flex-shrink: 0; }
+    .spin-btn { width: 100%; background: var(--accent); border: none; border-radius: 12px; padding: 12px 0; color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; }
+    .close-btn { background: transparent; border: none; color: #64748b; font-size: 13px; margin-top: 10px; cursor: pointer; }
 
-    .modal-box {
-      width: 100%;
-      max-width: 360px;
-      background: #140d28;
-      border: 1px solid var(--border-active);
-      border-radius: 24px;
-      padding: 24px 16px;
-      text-align: center;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-      position: relative;
-    }
+    /* Инвентарь */
+    .inv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .inv-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 10px 4px; text-align: center; }
+    .inv-card span { font-size: 26px; display: block; margin-bottom: 4px; }
+    .inv-card p { font-size: 10px; color: #cbd5e1; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .inv-card b { font-size: 11px; color: var(--gold); }
+    .sell-btn { width: 100%; background: #10b981; border: none; border-radius: 14px; padding: 12px 0; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; }
 
-    /* Горизонтальная лента рулетки */
-    .tape-wrapper {
-      width: 100%;
-      height: 120px;
-      position: relative;
-      overflow: hidden;
-      margin: 20px 0;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 16px;
-      border: 1px solid var(--border);
-    }
-
-    .tape-line {
-      position: absolute;
-      left: 50%;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: #f59e0b;
-      transform: translateX(-50%);
-      z-index: 10;
-      box-shadow: 0 0 12px #f59e0b;
-    }
-
-    .tape-track {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      position: absolute;
-      left: 0;
-      top: 0;
-      will-change: transform;
-    }
-
-    .tape-item {
-      width: 90px;
-      height: 90px;
-      flex-shrink: 0;
-      margin: 0 5px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      box-sizing: border-box;
-    }
-
-    .tape-item.rare {
-      border-color: #3b82f6;
-      background: rgba(59, 130, 246, 0.1);
-    }
-    .tape-item.epic {
-      border-color: #8b5cf6;
-      background: rgba(139, 92, 246, 0.1);
-    }
-    .tape-item.legendary {
-      border-color: #f59e0b;
-      background: rgba(245, 158, 11, 0.15);
-    }
-
-    .tape-item-name {
-      font-size: 9px;
-      font-weight: 700;
-      margin-top: 4px;
-      max-width: 80px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .action-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-      border: none;
-      border-radius: 14px;
-      color: #fff;
-      font-size: 15px;
-      font-weight: 800;
-      padding: 14px 0;
-      cursor: pointer;
-      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
-      transition: 0.15s;
-    }
-
-    .action-btn:active {
-      transform: scale(0.97);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      box-shadow: none;
-      color: #71717a;
-      font-size: 13px;
-      margin-top: 8px;
-    }
+    /* Таббар */
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 68px; background: #0e071e; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-around; align-items: center; }
+    .nav-item { font-size: 11px; font-weight: 700; color: #64748b; text-align: center; cursor: pointer; }
+    .nav-item span { font-size: 20px; display: block; margin-bottom: 2px; }
+    .nav-item.active { color: var(--accent); }
   </style>
 </head>
 <body>
 
-  <!-- Верхняя строка -->
-  <div class="header">
-    <div class="brand">
-      <div class="logo-badge">EG</div>
-      <div class="brand-title">EasyGifts</div>
-    </div>
-    <div class="balance-container">
-      <span>150</span>
-      <span>⭐️</span>
+  <div class="top-bar">
+    <div class="brand">EASYGIFTS</div>
+    <div class="stars-badge"><span id="stars-val">...</span> ⭐️</div>
+  </div>
+
+  <!-- Вкладка КЕЙСЫ -->
+  <div id="tab-cases" class="tab-content active">
+    <div class="grid">
+      <div class="case-card" onclick="openModal('starter', 'Стартовый', 25)">
+        <div class="case-icon">📦</div>
+        <div class="case-name">Стартовый</div>
+        <button class="open-btn">25 ⭐️</button>
+      </div>
+      <div class="case-card" onclick="openModal('rare', 'Telegram Rare', 75)">
+        <div class="case-icon">💎</div>
+        <div class="case-name">Rare Drop</div>
+        <button class="open-btn">75 ⭐️</button>
+      </div>
+      <div class="case-card" onclick="openModal('royal', 'Royal Gold', 250)">
+        <div class="case-icon">👑</div>
+        <div class="case-name">Royal Gold</div>
+        <button class="open-btn">250 ⭐️</button>
+      </div>
+      <div class="case-card" onclick="openModal('jackpot', 'Pepe Jackpot', 500)">
+        <div class="case-icon">🐸</div>
+        <div class="case-name">Pepe Jackpot</div>
+        <button class="open-btn">500 ⭐️</button>
+      </div>
     </div>
   </div>
 
-  <!-- Главный баннер -->
-  <div class="hero-banner">
-    <h2>Telegram Collectibles</h2>
-    <p>Выбивай эксклюзивные NFT-подарки и переводи прямо в профиль Telegram</p>
+  <!-- Вкладка ИНВЕНТАРЬ -->
+  <div id="tab-inv" class="tab-content">
+    <div class="inv-grid" id="inv-list"></div>
+    <button class="sell-btn" onclick="sellAll()">💰 Продать всё за Stars</button>
   </div>
 
-  <!-- Список кейсов -->
-  <div class="section-title">Доступные кейсы</div>
-  
-  <div class="grid">
-    <div class="card" onclick="openRoulette('Кейс Стартовый', 25)">
-      <div class="card-art">🎁</div>
-      <div class="card-title">Стартовый</div>
-      <button class="btn-buy">25 ⭐️</button>
-    </div>
-
-    <div class="card" onclick="openRoulette('Кейс Telegram Rare', 75)">
-      <div class="card-art">💎</div>
-      <div class="card-title">Telegram Rare</div>
-      <button class="btn-buy">75 ⭐️</button>
-    </div>
-
-    <div class="card" onclick="openRoulette('Кейс Royal Gold', 250)">
-      <div class="card-art">👑</div>
-      <div class="card-title">Royal Gold</div>
-      <button class="btn-buy">250 ⭐️</button>
-    </div>
-
-    <div class="card" onclick="openRoulette('Pepe NFT Jackpot', 500)">
-      <div class="card-art">🐸</div>
-      <div class="card-title">Pepe Jackpot</div>
-      <button class="btn-buy">500 ⭐️</button>
+  <!-- Вкладка ПРОФИЛЬ -->
+  <div id="tab-prof" class="tab-content">
+    <div class="case-card" style="text-align: left; padding: 20px;">
+      <h3 id="prof-title" style="margin-bottom: 6px;">Игрок</h3>
+      <p id="prof-id" style="color: #64748b; font-size: 13px;">ID: ...</p>
     </div>
   </div>
 
-  <!-- Модальное окно открытия с горизонтальной лентой -->
+  <!-- Модалка рулетки -->
   <div class="modal" id="modal">
     <div class="modal-box">
-      <h3 id="modal-title" style="font-size: 18px; font-weight: 800;">Кейс</h3>
-      
-      <!-- Лента -->
-      <div class="tape-wrapper">
+      <h3 id="modal-title" style="margin-bottom: 4px;">Кейс</h3>
+      <div class="tape-box">
         <div class="tape-line"></div>
         <div class="tape-track" id="tape-track"></div>
       </div>
-
-      <div id="drop-result" style="min-height: 24px; font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #a1a1aa;">
+      <div id="drop-status" style="font-size: 14px; font-weight: 700; color: #a1a1aa; margin-bottom: 12px; min-height: 20px;">
         Испытай удачу
       </div>
+      <button class="spin-btn" id="spin-btn" onclick="startSpin()">Крутить!</button>
+      <button class="close-btn" onclick="closeModal()">Закрыть</button>
+    </div>
+  </div>
 
-      <button class="action-btn" id="roll-btn" onclick="spinTape()">Открыть кейс</button>
-      <button class="action-btn btn-secondary" onclick="closeModal()">Закрыть</button>
+  <!-- Меню навигации -->
+  <div class="nav-bar">
+    <div class="nav-item active" onclick="switchNav('cases', this)">
+      <span>🎰</span>Кейсы
+    </div>
+    <div class="nav-item" onclick="switchNav('inv', this)">
+      <span>🎒</span>Инвентарь
+    </div>
+    <div class="nav-item" onclick="switchNav('prof', this)">
+      <span>👤</span>Профиль
     </div>
   </div>
 
   <script>
     const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.expand();
-      tg.ready();
+    if (tg) { tg.expand(); tg.ready(); }
+
+    const userId = tg?.initDataUnsafe?.user?.id || "demo";
+    let activeCase = "starter";
+    let isSpinning = false;
+
+    if (tg?.initDataUnsafe?.user) {
+      document.getElementById('prof-title').innerText = tg.initDataUnsafe.user.first_name;
+      document.getElementById('prof-id').innerText = "ID: " + tg.initDataUnsafe.user.id;
     }
 
-    const items = [
-      { name: "Teddy Bear", icon: "🧸", type: "common" },
-      { name: "Heart Box", icon: "💖", type: "common" },
-      { name: "Gem Ring", icon: "💍", type: "rare" },
-      { name: "Golden Cup", icon: "🏆", type: "rare" },
-      { name: "Star NFT", icon: "⭐", type: "epic" },
-      { name: "Diamond TON", icon: "💎", type: "epic" },
-      { name: "Pepe Gold", icon: "🐸", type: "legendary" }
-    ];
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/user_data?user_id=${userId}`);
+        const data = await res.json();
+        document.getElementById('stars-val').innerText = data.balance;
+        renderInventory(data.inventory);
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
-    const track = document.getElementById('tape-track');
-    const itemWidth = 100; // 90px + 10px margin
-    let isSpinning = false;
-    let winnerIndex = 0;
+    function switchNav(tab, el) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      el.classList.add('active');
+      if (tab === 'inv') loadData();
+    }
 
-    function openRoulette(name, price) {
-      document.getElementById('modal-title').innerText = `${name} (${price} ⭐️)`;
-      document.getElementById('drop-result').innerText = "Нажми кнопку для запуска";
-      document.getElementById('roll-btn').style.display = "block";
+    function renderInventory(items) {
+      const box = document.getElementById('inv-list');
+      box.innerHTML = '';
+      if (!items || items.length === 0) {
+        box.innerHTML = '<div style="grid-column: 1/-1; color: #64748b; padding: 30px 0; text-align: center;">Инвентарь пуст</div>';
+        return;
+      }
+      items.forEach(i => {
+        const d = document.createElement('div');
+        d.className = 'inv-card';
+        d.innerHTML = `<span>${i.icon}</span><p>${i.name}</p><b>${i.val} ⭐️</b>`;
+        box.appendChild(d);
+      });
+    }
+
+    async function sellAll() {
+      const res = await fetch('/api/sell_all', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('stars-val').innerText = data.new_balance;
+        renderInventory([]);
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      }
+    }
+
+    function openModal(type, title, price) {
+      activeCase = type;
+      document.getElementById('modal-title').innerText = `${title} (${price} ⭐️)`;
+      document.getElementById('drop-status').innerText = "Нажми кнопку, чтобы открыть";
+      document.getElementById('spin-btn').style.display = "block";
       document.getElementById('modal').style.display = "flex";
-      buildTape();
+      buildTrack();
     }
 
     function closeModal() {
@@ -410,51 +218,69 @@
       document.getElementById('modal').style.display = "none";
     }
 
-    function buildTape() {
-      track.innerHTML = "";
+    function buildTrack() {
+      const track = document.getElementById('tape-track');
       track.style.transition = "none";
       track.style.transform = "translateX(0px)";
-
-      // Генерируем 50 предметов в ленте
-      for (let i = 0; i < 50; i++) {
-        const rand = items[Math.floor(Math.random() * items.length)];
-        const div = document.createElement('div');
-        div.className = `tape-item ${rand.type}`;
-        div.innerHTML = `<span>${rand.icon}</span><span class="tape-item-name">${rand.name}</span>`;
-        track.appendChild(div);
+      track.innerHTML = "";
+      const icons = ["🧸", "💖", "💍", "🏆", "⭐", "💎", "🐸"];
+      for (let i = 0; i < 45; i++) {
+        const item = document.createElement('div');
+        item.className = "tape-item";
+        item.innerText = icons[Math.floor(Math.random() * icons.length)];
+        track.appendChild(item);
       }
     }
 
-    function spinTape() {
+    async function startSpin() {
       if (isSpinning) return;
-      isSpinning = true;
-      document.getElementById('roll-btn').style.display = "none";
-      document.getElementById('drop-result').innerText = "Кейс открывается...";
 
-      // Выбираем победный предмет на 38-й позиции
-      winnerIndex = 38;
-      const winner = items[Math.floor(Math.random() * items.length)];
-      
-      const winningNode = track.children[winnerIndex];
-      winningNode.className = `tape-item ${winner.type}`;
-      winningNode.innerHTML = `<span>${winner.icon}</span><span class="tape-item-name">${winner.name}</span>`;
+      const btn = document.getElementById('spin-btn');
+      const status = document.getElementById('drop-status');
 
-      // Рассчитываем смещение так, чтобы победный предмет встал ровно по центру маркера
-      const wrapperWidth = document.querySelector('.tape-wrapper').offsetWidth;
-      const targetOffset = (winnerIndex * itemWidth) + (itemWidth / 2) - (wrapperWidth / 2);
+      btn.style.display = "none";
+      status.innerText = "Связь с сервером...";
 
-      // Запуск плавной анимации с эффектом замедления
-      track.style.transition = "transform 4.5s cubic-bezier(0.12, 0.8, 0.32, 1)";
-      track.style.transform = `translateX(-${targetOffset}px)`;
+      try {
+        const res = await fetch('/api/open_case', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: userId, case_type: activeCase })
+        });
+        const data = await res.json();
 
-      setTimeout(() => {
-        isSpinning = false;
-        document.getElementById('drop-result').innerHTML = `<span style="color: #f59e0b;">Выпало: ${winner.name}!</span>`;
-        if (tg && tg.HapticFeedback) {
-          tg.HapticFeedback.notificationOccurred('success');
+        if (!data.ok) {
+          status.innerText = data.error;
+          btn.style.display = "block";
+          return;
         }
-      }, 4600);
+
+        document.getElementById('stars-val').innerText = data.new_balance;
+        isSpinning = true;
+        status.innerText = "Крутим ленту...";
+
+        // Устанавливаем призовой предмет на 35-ю ячейку
+        const track = document.getElementById('tape-track');
+        track.children[35].innerText = data.drop.icon;
+
+        // Расчет позиции остановки ленты по центру
+        const targetOffset = (35 * 90) + 45 - (document.querySelector('.tape-box').offsetWidth / 2);
+        track.style.transition = "transform 4.5s cubic-bezier(0.12, 0.8, 0.32, 1)";
+        track.style.transform = `translateX(-${targetOffset}px)`;
+
+        setTimeout(() => {
+          isSpinning = false;
+          status.innerHTML = `<span style="color: #f59e0b;">Выпало: ${data.drop.name}!</span>`;
+          if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }, 4600);
+
+      } catch (err) {
+        status.innerText = "Ошибка сети";
+        btn.style.display = "block";
+      }
     }
+
+    loadData();
   </script>
 </body>
 </html>
