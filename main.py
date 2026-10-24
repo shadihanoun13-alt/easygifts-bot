@@ -1,6 +1,7 @@
 import asyncio
 import os
 import random
+import base64
 from aiohttp import web
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
@@ -18,32 +19,316 @@ WITHDRAW_REQUESTS = []
 
 PRIZES_POOL = {
     "starter": [
-        {"id": "bear", "name": "Plush Teddy", "img": "https://img.icons8.com/isometric/512/teddy-bear.png", "type": "common", "val": 15, "weight": 60},
-        {"id": "heart", "name": "Heart Box", "img": "https://img.icons8.com/isometric/512/like.png", "type": "common", "val": 35, "weight": 25},
-        {"id": "ring", "name": "Diamond Ring", "img": "https://img.icons8.com/isometric/512/wedding-rings.png", "type": "rare", "val": 80, "weight": 12},
-        {"id": "cup", "name": "Telegram Cup", "img": "https://img.icons8.com/isometric/512/trophy.png", "type": "rare", "val": 180, "weight": 3},
+        {"id": "bear", "name": "Plush Teddy", "img": "https://img.icons8.com/isometric/512/teddy-bear.png", "val": 15, "weight": 60},
+        {"id": "heart", "name": "Heart Box", "img": "https://img.icons8.com/isometric/512/like.png", "val": 35, "weight": 25},
+        {"id": "ring", "name": "Diamond Ring", "img": "https://img.icons8.com/isometric/512/wedding-rings.png", "val": 80, "weight": 12},
+        {"id": "cup", "name": "Telegram Cup", "img": "https://img.icons8.com/isometric/512/trophy.png", "val": 180, "weight": 3},
     ],
     "rare": [
-        {"id": "heart", "name": "Heart Box", "img": "https://img.icons8.com/isometric/512/like.png", "type": "common", "val": 35, "weight": 45},
-        {"id": "ring", "name": "Diamond Ring", "img": "https://img.icons8.com/isometric/512/wedding-rings.png", "type": "rare", "val": 80, "weight": 35},
-        {"id": "star_nft", "name": "Star NFT #402", "img": "https://img.icons8.com/isometric/512/star.png", "type": "epic", "val": 400, "weight": 15},
-        {"id": "dog", "name": "Spike The Dog NFT", "img": "https://img.icons8.com/isometric/512/corgi.png", "type": "legendary", "val": 1500, "weight": 5},
+        {"id": "heart", "name": "Heart Box", "img": "https://img.icons8.com/isometric/512/like.png", "val": 35, "weight": 45},
+        {"id": "ring", "name": "Diamond Ring", "img": "https://img.icons8.com/isometric/512/wedding-rings.png", "val": 80, "weight": 35},
+        {"id": "star_nft", "name": "Star NFT #402", "img": "https://img.icons8.com/isometric/512/star.png", "val": 400, "weight": 15},
+        {"id": "dog", "name": "Spike The Dog NFT", "img": "https://img.icons8.com/isometric/512/corgi.png", "val": 1500, "weight": 5},
     ],
     "royal": [
-        {"id": "ring", "name": "Diamond Ring", "img": "https://img.icons8.com/isometric/512/wedding-rings.png", "type": "rare", "val": 80, "weight": 40},
-        {"id": "star_nft", "name": "Star NFT #402", "img": "https://img.icons8.com/isometric/512/star.png", "type": "epic", "val": 400, "weight": 35},
-        {"id": "ton_gem", "name": "TON Crystal NFT", "img": "https://img.icons8.com/isometric/512/diamond.png", "type": "legendary", "val": 2200, "weight": 20},
-        {"id": "pepe", "name": "Golden Pepe NFT", "img": "https://img.icons8.com/isometric/512/frog.png", "type": "mythic", "val": 5000, "weight": 5},
+        {"id": "ring", "name": "Diamond Ring", "img": "https://img.icons8.com/isometric/512/wedding-rings.png", "val": 80, "weight": 40},
+        {"id": "star_nft", "name": "Star NFT #402", "img": "https://img.icons8.com/isometric/512/star.png", "val": 400, "weight": 35},
+        {"id": "ton_gem", "name": "TON Crystal NFT", "img": "https://img.icons8.com/isometric/512/diamond.png", "val": 2200, "weight": 20},
+        {"id": "pepe", "name": "Golden Pepe NFT", "img": "https://img.icons8.com/isometric/512/frog.png", "val": 5000, "weight": 5},
     ],
     "jackpot": [
-        {"id": "star_nft", "name": "Star NFT #402", "img": "https://img.icons8.com/isometric/512/star.png", "type": "epic", "val": 400, "weight": 35},
-        {"id": "dog", "name": "Spike The Dog NFT", "img": "https://img.icons8.com/isometric/512/corgi.png", "type": "legendary", "val": 1500, "weight": 35},
-        {"id": "ton_gem", "name": "TON Crystal NFT", "img": "https://img.icons8.com/isometric/512/diamond.png", "type": "legendary", "val": 2200, "weight": 20},
-        {"id": "pepe", "name": "Golden Pepe NFT", "img": "https://img.icons8.com/isometric/512/frog.png", "type": "mythic", "val": 5000, "weight": 10},
+        {"id": "star_nft", "name": "Star NFT #402", "img": "https://img.icons8.com/isometric/512/star.png", "val": 400, "weight": 35},
+        {"id": "dog", "name": "Spike The Dog NFT", "img": "https://img.icons8.com/isometric/512/corgi.png", "val": 1500, "weight": 35},
+        {"id": "ton_gem", "name": "TON Crystal NFT", "img": "https://img.icons8.com/isometric/512/diamond.png", "val": 2200, "weight": 20},
+        {"id": "pepe", "name": "Golden Pepe NFT", "img": "https://img.icons8.com/isometric/512/frog.png", "val": 5000, "weight": 10},
     ]
 }
 
 CASE_PRICES = {"starter": 25, "rare": 75, "royal": 250, "jackpot": 500}
+
+RAW_HTML = """
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>EasyGifts</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root { --bg: #0b0718; --card: #150f28; --border: rgba(147, 51, 234, 0.25); --accent: #a855f7; --gold: #f59e0b; }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, sans-serif; }
+    body { background: var(--bg); background-image: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.22) 0%, transparent 60%); color: #fff; min-height: 100vh; padding: 16px 16px 90px 16px; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .brand { font-size: 19px; font-weight: 900; background: linear-gradient(90deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stars-badge { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--gold); border-radius: 20px; padding: 7px 16px; font-weight: 800; color: var(--gold); font-size: 14px; cursor: pointer; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .case-card { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .case-art { width: 84px; height: 84px; object-fit: contain; margin-bottom: 8px; filter: drop-shadow(0 6px 14px rgba(168, 85, 247, 0.45)); }
+    .case-name { font-size: 14px; font-weight: 800; margin-bottom: 10px; }
+    .open-btn { width: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 12px; padding: 10px 0; font-weight: 900; color: #0b0718; font-size: 14px; cursor: pointer; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { width: 100%; max-width: 340px; background: #130a24; border: 1px solid var(--border); border-radius: 24px; padding: 20px 16px; text-align: center; }
+    .tape-box { width: 100%; height: 110px; position: relative; overflow: hidden; margin: 16px 0; background: rgba(0,0,0,0.6); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); }
+    .tape-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: var(--gold); transform: translateX(-50%); z-index: 10; box-shadow: 0 0 10px var(--gold); }
+    .tape-track { display: flex; align-items: center; height: 100%; position: absolute; left: 0; top: 0; }
+    .tape-item { width: 80px; height: 80px; margin: 0 5px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tape-item img { width: 55px; height: 55px; object-fit: contain; }
+    .spin-btn { width: 100%; background: var(--accent); border: none; border-radius: 12px; padding: 12px 0; color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; }
+    .close-btn { background: transparent; border: none; color: #64748b; font-size: 13px; margin-top: 10px; cursor: pointer; }
+    .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .inv-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 10px; text-align: center; }
+    .inv-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 6px; }
+    .inv-card h4 { font-size: 12px; font-weight: 800; margin-bottom: 4px; }
+    .inv-card p { font-size: 12px; color: var(--gold); font-weight: 800; margin-bottom: 10px; }
+    .inv-actions { display: flex; gap: 6px; }
+    .inv-btn-sell { flex: 1; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-size: 10px; font-weight: 800; padding: 6px 0; cursor: pointer; }
+    .inv-btn-withdraw { flex: 1; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6; border-radius: 8px; font-size: 10px; font-weight: 800; padding: 6px 0; cursor: pointer; }
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 68px; background: #0e071e; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-around; align-items: center; z-index: 50; }
+    .nav-item { font-size: 11px; font-weight: 700; color: #64748b; text-align: center; cursor: pointer; }
+    .nav-item span { font-size: 20px; display: block; margin-bottom: 2px; }
+    .nav-item.active { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="brand">EASYGIFTS</div>
+    <div class="stars-badge"><span id="stars-val">...</span> ⭐️</div>
+  </div>
+
+  <div id="tab-cases" class="tab-content active">
+    <div class="grid">
+      <div class="case-card">
+        <img class="case-art" src="https://img.icons8.com/isometric/512/teddy-bear.png">
+        <div class="case-name">Стартовый</div>
+        <button class="open-btn" onclick="openModal('starter', 'Стартовый', 25)">25 ⭐️</button>
+      </div>
+      <div class="case-card">
+        <img class="case-art" src="https://img.icons8.com/isometric/512/star.png">
+        <div class="case-name">Rare NFT Drop</div>
+        <button class="open-btn" onclick="openModal('rare', 'Rare NFT Drop', 75)">75 ⭐️</button>
+      </div>
+      <div class="case-card">
+        <img class="case-art" src="https://img.icons8.com/isometric/512/diamond.png">
+        <div class="case-name">TON Crystal</div>
+        <button class="open-btn" onclick="openModal('royal', 'TON Crystal', 250)">250 ⭐️</button>
+      </div>
+      <div class="case-card">
+        <img class="case-art" src="https://img.icons8.com/isometric/512/frog.png">
+        <div class="case-name">Pepe Jackpot</div>
+        <button class="open-btn" onclick="openModal('jackpot', 'Pepe Jackpot', 500)">500 ⭐️</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-inv" class="tab-content">
+    <div class="inv-grid" id="inv-list"></div>
+  </div>
+
+  <div id="tab-prof" class="tab-content">
+    <div class="case-card" style="text-align: left; padding: 20px;">
+      <h3 id="prof-title" style="margin-bottom: 6px;">Игрок</h3>
+      <p id="prof-id" style="color: #64748b; font-size: 13px; margin-bottom: 14px;">ID: ...</p>
+      <button class="open-btn" onclick="addBal(100)">⭐️ Тест +100 Stars</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <h3 id="modal-title" style="margin-bottom: 4px;">Кейс</h3>
+      <div class="tape-box">
+        <div class="tape-line"></div>
+        <div class="tape-track" id="tape-track"></div>
+      </div>
+      <div id="drop-status" style="font-size: 14px; font-weight: 700; color: #a1a1aa; margin-bottom: 12px; min-height: 20px;">Готов к открытию</div>
+      <button class="spin-btn" id="spin-btn" onclick="startSpin()">Крутить!</button>
+      <button class="close-btn" onclick="closeModal()">Закрыть</button>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <div class="nav-item active" onclick="switchNav('cases', this)"><span>🎰</span>Кейсы</div>
+    <div class="nav-item" onclick="switchNav('inv', this)"><span>🎒</span>Инвентарь</div>
+    <div class="nav-item" onclick="switchNav('prof', this)"><span>👤</span>Профиль</div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.expand(); tg.ready(); }
+    const userId = tg?.initDataUnsafe?.user?.id || "demo";
+    let activeCase = "starter";
+    let isSpinning = false;
+
+    if (tg?.initDataUnsafe?.user) {
+      document.getElementById('prof-title').innerText = tg.initDataUnsafe.user.first_name;
+      document.getElementById('prof-id').innerText = "ID: " + tg.initDataUnsafe.user.id;
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/user_data?user_id=${userId}`);
+        const data = await res.json();
+        document.getElementById('stars-val').innerText = data.balance;
+        renderInventory(data.inventory);
+      } catch (e) { console.error(e); }
+    }
+
+    function switchNav(tab, el) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      el.classList.add('active');
+      if (tab === 'inv') loadData();
+    }
+
+    function renderInventory(items) {
+      const box = document.getElementById('inv-list');
+      box.innerHTML = '';
+      if (!items || items.length === 0) {
+        box.innerHTML = '<div style="grid-column: 1/-1; color: #64748b; padding: 40px 0; text-align: center;">Инвентарь пуст</div>';
+        return;
+      }
+      items.forEach((item, index) => {
+        const d = document.createElement('div');
+        d.className = 'inv-card';
+        d.innerHTML = `
+          <img src="${item.img}">
+          <h4>${item.name}</h4>
+          <p>${item.val} ⭐️</p>
+          <div class="inv-actions">
+            <button class="inv-btn-sell" onclick="sellItem(${index})">Продать</button>
+            <button class="inv-btn-withdraw" onclick="withdrawItem(${index}, '${item.name}')">Вывести</button>
+          </div>
+        `;
+        box.appendChild(d);
+      });
+    }
+
+    async function sellItem(idx) {
+      const res = await fetch('/api/sell_item', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId, index: idx })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('stars-val').innerText = data.new_balance;
+        renderInventory(data.inventory);
+      }
+    }
+
+    async function withdrawItem(idx, name) {
+      const address = prompt(`Куда вывести ${name}? Укажите username или кошелек:`);
+      if (!address) return;
+      const res = await fetch('/api/withdraw_item', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId, index: idx, target: address })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert("Заявка принята!");
+        renderInventory(data.inventory);
+      }
+    }
+
+    async function addBal(amt) {
+      const res = await fetch('/api/add_balance', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId, amount: amt })
+      });
+      const data = await res.json();
+      if (data.ok) document.getElementById('stars-val').innerText = data.new_balance;
+    }
+
+    function openModal(type, title, price) {
+      activeCase = type;
+      document.getElementById('modal-title').innerText = `${title} (${price} ⭐️)`;
+      document.getElementById('drop-status').innerText = "Нажми кнопку, чтобы открыть";
+      document.getElementById('spin-btn').style.display = "block";
+      document.getElementById('modal').style.display = "flex";
+      buildTrack();
+    }
+
+    function closeModal() {
+      if (isSpinning) return;
+      document.getElementById('modal').style.display = "none";
+    }
+
+    const defaultPool = [
+      "https://img.icons8.com/isometric/512/teddy-bear.png",
+      "https://img.icons8.com/isometric/512/like.png",
+      "https://img.icons8.com/isometric/512/wedding-rings.png",
+      "https://img.icons8.com/isometric/512/star.png",
+      "https://img.icons8.com/isometric/512/diamond.png",
+      "https://img.icons8.com/isometric/512/frog.png"
+    ];
+
+    function buildTrack() {
+      const track = document.getElementById('tape-track');
+      track.style.transition = "none";
+      track.style.transform = "translateX(0px)";
+      track.innerHTML = "";
+      for (let i = 0; i < 45; i++) {
+        const item = document.createElement('div');
+        item.className = "tape-item";
+        item.innerHTML = `<img src="${defaultPool[i % defaultPool.length]}">`;
+        track.appendChild(item);
+      }
+    }
+
+    async function startSpin() {
+      if (isSpinning) return;
+      const btn = document.getElementById('spin-btn');
+      const status = document.getElementById('drop-status');
+      btn.style.display = "none";
+      status.innerText = "Связь с сервером...";
+
+      try {
+        const res = await fetch('/api/open_case', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: userId, case_type: activeCase })
+        });
+        const data = await res.json();
+
+        if (!data.ok) {
+          status.innerText = data.error;
+          btn.style.display = "block";
+          return;
+        }
+
+        document.getElementById('stars-val').innerText = data.new_balance;
+        isSpinning = true;
+        status.innerText = "Крутим...";
+
+        const track = document.getElementById('tape-track');
+        track.children[35].innerHTML = `<img src="${data.drop.img}">`;
+
+        const targetOffset = (35 * 90) + 45 - (document.querySelector('.tape-box').offsetWidth / 2);
+        track.style.transition = "transform 4.5s cubic-bezier(0.12, 0.8, 0.32, 1)";
+        track.style.transform = `translateX(-${targetOffset}px)`;
+
+        setTimeout(() => {
+          isSpinning = false;
+          status.innerHTML = `<span style="color: #f59e0b;">Выпало: ${data.drop.name}!</span>`;
+        }, 4600);
+
+      } catch (err) {
+        status.innerText = "Ошибка сети";
+        btn.style.display = "block";
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
+"""
+
+HTML_PAYLOAD = base64.b64decode(base64.b64encode(RAW_HTML.encode("utf-8"))).decode("utf-8")
 
 @dp.message(Command("start"))
 async def start_cmd(message: types.Message):
@@ -65,12 +350,7 @@ async def start_cmd(message: types.Message):
     )
 
 async def handle_index(request):
-    try:
-        path = os.path.join(os.path.dirname(__file__), "index.html")
-        with open(path, "r", encoding="utf-8") as f:
-            return web.Response(text=f.read(), content_type="text/html")
-    except Exception as e:
-        return web.Response(text=f"index.html error: {e}", status=500)
+    return web.Response(text=HTML_PAYLOAD, content_type="text/html")
 
 async def api_user_data(request):
     uid = request.query.get("user_id", "demo")
@@ -108,7 +388,6 @@ async def api_open_case(request):
         "id": drop["id"],
         "name": drop["name"],
         "img": drop["img"],
-        "type": drop["type"],
         "val": drop["val"]
     }
     USER_INVENTORIES.setdefault(uid, []).append(item_record)
@@ -165,7 +444,7 @@ async def main():
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"EasyGifts server running on port {port}")
+    print(f"EasyGifts running on port {port}")
 
     await dp.start_polling(bot)
 
