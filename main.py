@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
-BOT_TOKEN = "8538776972:AAG-X__6ZZaf6iN7WihUB9blBRae37so0nE"
+BOT_TOKEN = "8538776972:AAEG4cNRlDTTCO_hD7lTTabuyd8dFSMe4zo"
 WEBAPP_URL = "https://easygifts-bot.onrender.com"
 
 bot = Bot(token=BOT_TOKEN)
@@ -16,7 +16,6 @@ USER_BALANCES = {}
 USER_INVENTORIES = {}
 WITHDRAW_REQUESTS = []
 
-# Каталог реальных Telegram Gifts & NFT
 PRIZES_POOL = {
     "starter": [
         {"id": "bear", "name": "Plush Teddy", "img": "https://img.icons8.com/isometric/512/teddy-bear.png", "type": "common", "val": 15, "weight": 60},
@@ -87,7 +86,6 @@ HTML_PAGE = """<!DOCTYPE html>
       padding: 10px 0; font-weight: 900; color: #0b0718; font-size: 14px; cursor: pointer;
     }
 
-    /* Модалка рулетки */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100;
       flex-direction: column; align-items: center; justify-content: center; padding: 16px;
@@ -101,7 +99,6 @@ HTML_PAGE = """<!DOCTYPE html>
     .spin-btn { width: 100%; background: var(--accent); border: none; border-radius: 12px; padding: 12px 0; color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; }
     .close-btn { background: transparent; border: none; color: #64748b; font-size: 13px; margin-top: 10px; cursor: pointer; }
 
-    /* Инвентарь */
     .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
     .inv-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 10px; text-align: center; }
     .inv-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 6px; }
@@ -111,13 +108,11 @@ HTML_PAGE = """<!DOCTYPE html>
     .inv-btn-sell { flex: 1; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-size: 10px; font-weight: 800; padding: 6px 0; cursor: pointer; }
     .inv-btn-withdraw { flex: 1; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6; border-radius: 8px; font-size: 10px; font-weight: 800; padding: 6px 0; cursor: pointer; }
 
-    /* Модалка пополнения Stars */
     .deposit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
     .deposit-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center; cursor: pointer; }
     .deposit-card b { display: block; font-size: 16px; color: var(--gold); }
     .deposit-card span { font-size: 11px; color: #94a3b8; }
 
-    /* Навбар */
     .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 68px; background: #0e071e; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-around; align-items: center; z-index: 50; }
     .nav-item { font-size: 11px; font-weight: 700; color: #64748b; text-align: center; cursor: pointer; }
     .nav-item span { font-size: 20px; display: block; margin-bottom: 2px; }
@@ -131,7 +126,6 @@ HTML_PAGE = """<!DOCTYPE html>
     <div class="stars-badge" onclick="openDepositModal()"><span id="stars-val">...</span> ⭐️ ＋</div>
   </div>
 
-  <!-- Вкладка КЕЙСЫ -->
   <div id="tab-cases" class="tab-content active">
     <div class="grid">
       <div class="case-card" onclick="openModal('starter', 'Стартовый', 25)">
@@ -157,12 +151,10 @@ HTML_PAGE = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- Вкладка ИНВЕНТАРЬ -->
   <div id="tab-inv" class="tab-content">
     <div class="inv-grid" id="inv-list"></div>
   </div>
 
-  <!-- Вкладка ПРОФИЛЬ -->
   <div id="tab-prof" class="tab-content">
     <div class="case-card" style="text-align: left; padding: 20px;">
       <h3 id="prof-title" style="margin-bottom: 6px;">Игрок</h3>
@@ -171,7 +163,6 @@ HTML_PAGE = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- Модалка рулетки -->
   <div class="modal" id="modal">
     <div class="modal-box">
       <h3 id="modal-title" style="margin-bottom: 4px;">Кейс</h3>
@@ -187,7 +178,6 @@ HTML_PAGE = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- Модалка пополнения -->
   <div class="modal" id="deposit-modal">
     <div class="modal-box">
       <h3>Пополнить Stars ⭐️</h3>
@@ -214,7 +204,6 @@ HTML_PAGE = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- Навбар -->
   <div class="nav-bar">
     <div class="nav-item active" onclick="switchNav('cases', this)"><span>🎰</span>Кейсы</div>
     <div class="nav-item" onclick="switchNav('inv', this)"><span>🎒</span>Инвентарь</div>
@@ -298,7 +287,7 @@ HTML_PAGE = """<!DOCTYPE html>
       });
       const data = await res.json();
       if (data.ok) {
-        alert("Заявка на вывод создана! Подарок поступит в профиль.");
+        alert("Заявка на вывод создана! Скоро появится в профиле.");
         renderInventory(data.inventory);
       }
     }
@@ -418,9 +407,9 @@ async def start_cmd(message: types.Message):
     ])
     await message.answer(
         f"👋 Привет, {message.from_user.first_name}!\n\n"
-        f"Добро пожаловать в **EasyGifts**.\n"
+        f"Добро пожаловать в **EasyGifts** — открытие кейсов с NFT и подарками Telegram.\n"
         f"Твой баланс: **{USER_BALANCES[uid]} ⭐️**\n\n"
-        "Жми кнопку ниже, чтобы начать игру 👇",
+        "Жми кнопку ниже, чтобы начать 👇",
         reply_markup=kb,
         parse_mode="Markdown"
     )
@@ -517,7 +506,7 @@ async def main():
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"EasyGifts server running on port {port}")
+    print(f"EasyGifts running on port {port}")
 
     await dp.start_polling(bot)
 
