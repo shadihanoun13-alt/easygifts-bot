@@ -22,10 +22,10 @@
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .brand { font-size: 19px; font-weight: 900; background: linear-gradient(90deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .stars-badge { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--gold); border-radius: 20px; padding: 7px 16px; font-weight: 800; color: var(--gold); font-size: 14px; cursor: pointer; }
-    
+
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    
+
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .case-card {
       background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 16px 12px;
@@ -38,6 +38,7 @@
       padding: 10px 0; font-weight: 900; color: #0b0718; font-size: 14px; cursor: pointer;
     }
 
+    /* Модалка рулетки */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100;
       flex-direction: column; align-items: center; justify-content: center; padding: 16px;
@@ -51,6 +52,7 @@
     .spin-btn { width: 100%; background: var(--accent); border: none; border-radius: 12px; padding: 12px 0; color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; }
     .close-btn { background: transparent; border: none; color: #64748b; font-size: 13px; margin-top: 10px; cursor: pointer; }
 
+    /* Инвентарь */
     .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
     .inv-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 10px; text-align: center; }
     .inv-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 6px; }
@@ -60,11 +62,13 @@
     .inv-btn-sell { flex: 1; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-size: 10px; font-weight: 800; padding: 6px 0; cursor: pointer; }
     .inv-btn-withdraw { flex: 1; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6; border-radius: 8px; font-size: 10px; font-weight: 800; padding: 6px 0; cursor: pointer; }
 
+    /* Пополнение Stars */
     .deposit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
     .deposit-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center; cursor: pointer; }
     .deposit-card b { display: block; font-size: 16px; color: var(--gold); }
     .deposit-card span { font-size: 11px; color: #94a3b8; }
 
+    /* Навбар */
     .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 68px; background: #0e071e; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-around; align-items: center; z-index: 50; }
     .nav-item { font-size: 11px; font-weight: 700; color: #64748b; text-align: center; cursor: pointer; }
     .nav-item span { font-size: 20px; display: block; margin-bottom: 2px; }
@@ -103,4 +107,246 @@
     </div>
   </div>
 
-  <div id="tab-inv" class
+  <div id="tab-inv" class="tab-content">
+    <div class="inv-grid" id="inv-list"></div>
+  </div>
+
+  <div id="tab-prof" class="tab-content">
+    <div class="case-card" style="text-align: left; padding: 20px;">
+      <h3 id="prof-title" style="margin-bottom: 6px;">Игрок</h3>
+      <p id="prof-id" style="color: #64748b; font-size: 13px; margin-bottom: 14px;">ID: ...</p>
+      <button class="open-btn" onclick="openDepositModal()">⭐️ Пополнить счёт Stars</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <h3 id="modal-title" style="margin-bottom: 4px;">Кейс</h3>
+      <div class="tape-box">
+        <div class="tape-line"></div>
+        <div class="tape-track" id="tape-track"></div>
+      </div>
+      <div id="drop-status" style="font-size: 14px; font-weight: 700; color: #a1a1aa; margin-bottom: 12px; min-height: 20px;">
+        Испытай удачу
+      </div>
+      <button class="spin-btn" id="spin-btn" onclick="startSpin()">Крутить!</button>
+      <button class="close-btn" onclick="closeModal()">Закрыть</button>
+    </div>
+  </div>
+
+  <div class="modal" id="deposit-modal">
+    <div class="modal-box">
+      <h3>Пополнить Stars ⭐️</h3>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Выберите сумму для пополнения</p>
+      <div class="deposit-grid">
+        <div class="deposit-card" onclick="buyStars(50)">
+          <b>50 ⭐️</b>
+          <span>Тестовый</span>
+        </div>
+        <div class="deposit-card" onclick="buyStars(100)">
+          <b>100 ⭐️</b>
+          <span>Популярный</span>
+        </div>
+        <div class="deposit-card" onclick="buyStars(250)">
+          <b>250 ⭐️</b>
+          <span>Выгодный</span>
+        </div>
+        <div class="deposit-card" onclick="buyStars(500)">
+          <b>500 ⭐️</b>
+          <span>VIP Пакет</span>
+        </div>
+      </div>
+      <button class="close-btn" onclick="closeDepositModal()">Отмена</button>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <div class="nav-item active" onclick="switchNav('cases', this)"><span>🎰</span>Кейсы</div>
+    <div class="nav-item" onclick="switchNav('inv', this)"><span>🎒</span>Инвентарь</div>
+    <div class="nav-item" onclick="switchNav('prof', this)"><span>👤</span>Профиль</div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.expand(); tg.ready(); }
+    const userId = tg?.initDataUnsafe?.user?.id || "demo";
+    let activeCase = "starter";
+    let isSpinning = false;
+
+    if (tg?.initDataUnsafe?.user) {
+      document.getElementById('prof-title').innerText = tg.initDataUnsafe.user.first_name;
+      document.getElementById('prof-id').innerText = "ID: " + tg.initDataUnsafe.user.id;
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/user_data?user_id=${userId}`);
+        const data = await res.json();
+        document.getElementById('stars-val').innerText = data.balance;
+        renderInventory(data.inventory);
+      } catch (e) { console.error(e); }
+    }
+
+    function switchNav(tab, el) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      el.classList.add('active');
+      if (tab === 'inv') loadData();
+    }
+
+    function renderInventory(items) {
+      const box = document.getElementById('inv-list');
+      box.innerHTML = '';
+      if (!items || items.length === 0) {
+        box.innerHTML = '<div style="grid-column: 1/-1; color: #64748b; padding: 40px 0; text-align: center;">Инвентарь пуст.<br>Открывай кейсы!</div>';
+        return;
+      }
+      items.forEach((item, index) => {
+        const d = document.createElement('div');
+        d.className = 'inv-card';
+        d.innerHTML = `
+          <img src="${item.img}">
+          <h4>${item.name}</h4>
+          <p>${item.val} ⭐️</p>
+          <div class="inv-actions">
+            <button class="inv-btn-sell" onclick="sellItem(${index})">Продать</button>
+            <button class="inv-btn-withdraw" onclick="withdrawItem(${index}, '${item.name}')">Вывести</button>
+          </div>
+        `;
+        box.appendChild(d);
+      });
+    }
+
+    async function sellItem(idx) {
+      const res = await fetch('/api/sell_item', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId, index: idx })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('stars-val').innerText = data.new_balance;
+        renderInventory(data.inventory);
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      }
+    }
+
+    async function withdrawItem(idx, name) {
+      const address = prompt(`Куда вывести ${name}? Укажите @username или TON-кошелек:`);
+      if (!address) return;
+
+      const res = await fetch('/api/withdraw_item', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId, index: idx, target: address })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert("Заявка на вывод создана! Скоро появится в профиле.");
+        renderInventory(data.inventory);
+      }
+    }
+
+    function openDepositModal() { document.getElementById('deposit-modal').style.display = 'flex'; }
+    function closeDepositModal() { document.getElementById('deposit-modal').style.display = 'none'; }
+
+    async function buyStars(amount) {
+      const res = await fetch('/api/add_balance', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId, amount: amount })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('stars-val').innerText = data.new_balance;
+        closeDepositModal();
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      }
+    }
+
+    function openModal(type, title, price) {
+      activeCase = type;
+      document.getElementById('modal-title').innerText = `${title} (${price} ⭐️)`;
+      document.getElementById('drop-status').innerText = "Нажми кнопку, чтобы открыть";
+      document.getElementById('spin-btn').style.display = "block";
+      document.getElementById('modal').style.display = "flex";
+      buildTrack();
+    }
+
+    function closeModal() {
+      if (isSpinning) return;
+      document.getElementById('modal').style.display = "none";
+    }
+
+    const defaultPool = [
+      "https://img.icons8.com/isometric/512/teddy-bear.png",
+      "https://img.icons8.com/isometric/512/like.png",
+      "https://img.icons8.com/isometric/512/wedding-rings.png",
+      "https://img.icons8.com/isometric/512/trophy.png",
+      "https://img.icons8.com/isometric/512/star.png",
+      "https://img.icons8.com/isometric/512/diamond.png",
+      "https://img.icons8.com/isometric/512/frog.png"
+    ];
+
+    function buildTrack() {
+      const track = document.getElementById('tape-track');
+      track.style.transition = "none";
+      track.style.transform = "translateX(0px)";
+      track.innerHTML = "";
+      for (let i = 0; i < 45; i++) {
+        const item = document.createElement('div');
+        item.className = "tape-item";
+        item.innerHTML = `<img src="${defaultPool[Math.floor(Math.random() * defaultPool.length)]}">`;
+        track.appendChild(item);
+      }
+    }
+
+    async function startSpin() {
+      if (isSpinning) return;
+      const btn = document.getElementById('spin-btn');
+      const status = document.getElementById('drop-status');
+      btn.style.display = "none";
+      status.innerText = "Связь с сервером...";
+
+      try {
+        const res = await fetch('/api/open_case', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: userId, case_type: activeCase })
+        });
+        const data = await res.json();
+
+        if (!data.ok) {
+          status.innerText = data.error;
+          btn.style.display = "block";
+          return;
+        }
+
+        document.getElementById('stars-val').innerText = data.new_balance;
+        isSpinning = true;
+        status.innerText = "Крутим ленту...";
+
+        const track = document.getElementById('tape-track');
+        track.children[35].innerHTML = `<img src="${data.drop.img}">`;
+
+        const targetOffset = (35 * 90) + 45 - (document.querySelector('.tape-box').offsetWidth / 2);
+        track.style.transition = "transform 4.5s cubic-bezier(0.12, 0.8, 0.32, 1)";
+        track.style.transform = `translateX(-${targetOffset}px)`;
+
+        setTimeout(() => {
+          isSpinning = false;
+          status.innerHTML = `<span style="color: #f59e0b;">Выпало: ${data.drop.name}!</span>`;
+          if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }, 4600);
+
+      } catch (err) {
+        status.innerText = "Ошибка сети";
+        btn.style.display = "block";
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
